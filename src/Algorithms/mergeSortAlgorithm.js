@@ -1,36 +1,58 @@
-import Helper from "../HelperFunctions/Helper";
 
-export const mergeSort = array => {
-    
-    if (array.length === 1) {
-        return array;
-    }
+export const getMergeSortAnimations = (array) => {
+  const animations = [];
+  if (array.length <= 1) {
+    return array;
+  }
+  const tempArray = array.slice();
 
-    const middle = Math.floor(array.length/2) ;
-    const left = mergeSort(array.slice(0, middle));
-    const right = mergeSort(array.slice(middle))
-    const sortedArray = []; 
-    merge(left, right, sortedArray);
+  mergeSortHelper(array, tempArray, 0, array.length - 1, animations);
+  return animations;
+};
 
-    return sortedArray;
-}
- 
-const merge = (leftArray, rightArray, sortedArray) => {
-    let i = 0;
-    let j = 0;
-    while ((i < leftArray.length) && (j < rightArray.length)) {
-        if (leftArray[i] <= rightArray[j]) {
-            sortedArray.push(leftArray[i++]);
-        } else {
-            sortedArray.push(rightArray[j++]);
-        }
-    }
-    while (i < leftArray.length) {
-        sortedArray.push(leftArray[i++]);
-    }
-    while (j < rightArray.length) {
-        sortedArray.push(rightArray[j++]);
-    }
+const mergeSortHelper = (mainArray, tempArray, start, end, animations) => {
+  if (start === end) {
+    return;
+  }
+  const middle = Math.floor((start + end) / 2);
+  mergeSortHelper(tempArray, mainArray, start, middle, animations);
+  mergeSortHelper(tempArray, mainArray, middle + 1, end, animations);
+  doMerge(mainArray, start, middle, end, tempArray, animations);
+};
 
-    return sortedArray;
-}
+const doMerge = (
+  mainArray,
+  startIdx,
+  middleIdx,
+  endIdx,
+  tempArray,
+  animations
+) => {
+  let i = startIdx;
+  let j = middleIdx+1;
+  let k = startIdx;
+  while (i <= middleIdx && j <= endIdx) {
+    animations.push([i, j]);
+    animations.push([i, j]);
+    if (tempArray[i] <= tempArray[j]) {
+        animations.push([k, tempArray[i]]);
+        mainArray[k++] = tempArray[i++];
+    } else {
+        animations.push([k, tempArray[j]]);
+        mainArray[k++] = tempArray[j++];
+    }
+  }
+  while (i <= middleIdx) {
+    animations.push([i, i]);
+    animations.push([i, i]);
+    animations.push([k, tempArray[i]]);
+    mainArray[k++] = tempArray[i++];
+  }
+  while (j <= endIdx) {
+    animations.push([j, j]);
+    animations.push([j, j]);
+    animations.push([k, tempArray[j]]);
+    mainArray[k++] = tempArray[j++];
+  }
+
+};

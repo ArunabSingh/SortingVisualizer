@@ -2,9 +2,11 @@ import React from "react";
 import "./Sorting.css";
 import { getMergeSortAnimations } from "../Algorithms/mergeSortAlgorithm";
 
-// Change this value for the number of bars (value) in the array.
-const PRIMARY_COLOR = "turquoise";
-const SECONDARY_COLOR = "red";
+const DONE_COLOR = "#F0EDE0";
+const IN_ACTION_COLOR = "#DB1F48";
+const VISITED_COLOR = "#01949A";
+const RANDOM_STATE_COLOR = "#d6d6d6";
+
 const HEIGHT_FACTOR = 3.8;
 
 class Sorting extends React.Component {
@@ -20,7 +22,13 @@ class Sorting extends React.Component {
 
   speeds = [0.25, 0.5, 1, 2, 4, 8];
   sizes = [50, 75, 100, 125, 150, 175, 200];
-  sortingAlgos = ["Bubble Sort", "Quick Sort", "Merge Sort", "Heap Sort"];
+  sortingAlgos = [
+    "Bubble Sort",
+    "Quick Sort",
+    "Merge Sort",
+    "Heap Sort",
+    "Insertion Sort",
+  ];
 
   componentDidMount() {
     this.algorithm = "Bubble Sort";
@@ -52,7 +60,7 @@ class Sorting extends React.Component {
         const [barOneIdx, barTwoIdx] = animations[i];
         const barOneStyle = bars[barOneIdx].style;
         const barTwoStyle = bars[barTwoIdx].style;
-        const color = i % 3 === 0 ? SECONDARY_COLOR : PRIMARY_COLOR;
+        const color = i % 3 === 0 ? IN_ACTION_COLOR : DONE_COLOR;
         await this.sleep(this.speed);
         barOneStyle.backgroundColor = color;
         barTwoStyle.backgroundColor = color;
@@ -65,7 +73,7 @@ class Sorting extends React.Component {
     }
     console.log("YOO, ");
     for (let i = 0; i < this.state.array.length; i++) {
-      bars[i].style.backgroundColor = "#d6d6d6";
+      bars[i].style.backgroundColor = RANDOM_STATE_COLOR;
     }
   }
 
@@ -74,9 +82,9 @@ class Sorting extends React.Component {
     items[leftIndex] = items[rightIndex];
     items[rightIndex] = temp;
     bars[leftIndex].style.height = items[leftIndex] * HEIGHT_FACTOR + "px";
-    bars[leftIndex].style.backgroundColor = "#50c5b7";
+    bars[leftIndex].style.backgroundColor = IN_ACTION_COLOR;
     bars[rightIndex].style.height = items[rightIndex] * HEIGHT_FACTOR + "px";
-    bars[rightIndex].style.backgroundColor = "#50c5b7";
+    bars[rightIndex].style.backgroundColor = IN_ACTION_COLOR;
     await this.sleep(this.speed);
   }
 
@@ -84,11 +92,11 @@ class Sorting extends React.Component {
     let bars = document.getElementsByClassName("array-cell");
     let pivotIndex = Math.floor((right + left) / 2);
     var pivot = items[pivotIndex]; //middle element
-    bars[pivotIndex].style.backgroundColor = "#E97451";
+    bars[pivotIndex].style.backgroundColor = VISITED_COLOR;
 
     for (let i = 0; i < bars.length; i++) {
       if (i !== pivotIndex) {
-        bars[i].style.backgroundColor = "#9cec5b";
+        bars[i].style.backgroundColor = DONE_COLOR;
       }
     }
     let i = left; //left pointer
@@ -113,55 +121,94 @@ class Sorting extends React.Component {
     var index;
     let bars = document.getElementsByClassName("array-cell");
     if (items.length > 1) {
-      index = await this.partition(items, left, right); //index returned from partition
+      index = await this.partition(items, left, right);
       if (left < index - 1) {
-        //more elements on the left side of the pivot
         await this.quickSort(items, left, index - 1);
       }
       if (index < right) {
-        //more elements on the right side of the pivot
         await this.quickSort(items, index, right);
       }
     }
 
     for (let i = 0; i < bars.length; i++) {
-      bars[i].style.backgroundColor = "#d6d6d6";
+      bars[i].style.backgroundColor = RANDOM_STATE_COLOR;
     }
     return items;
   }
 
+  async insertionSort(array) {
+    let bars = document.getElementsByClassName("array-cell");
+    for (let i = 1; i < array.length; i++) {
+      let key = array[i];
+      let j = i - 1;
+      while (j >= 0 && array[j] > key) {
+        array[j + 1] = array[j];
+        bars[j + 1].style.height = array[j + 1] * HEIGHT_FACTOR + "px";
+        bars[j + 1].style.backgroundColor = IN_ACTION_COLOR;
+        await this.sleep(this.speed);
+
+        for (let k = 0; k < bars.length; k++) {
+          if (k !== j + 1) {
+            bars[k].style.backgroundColor = DONE_COLOR;
+          }
+        }
+        j = j - 1;
+      }
+      array[j + 1] = key;
+      bars[j + 1].style.height = array[j + 1] * HEIGHT_FACTOR + "px";
+      bars[j + 1].style.backgroundColor = VISITED_COLOR;
+      await this.sleep(this.speed);
+    }
+
+    for (let k = 0; k < bars.length; k++) {
+      bars[k].style.backgroundColor = RANDOM_STATE_COLOR;
+    }
+    return array;
+  }
+
   async heapSort(array) {
-  let bars = document.getElementsByClassName("array-cell");
-  for (let i = Math.floor(array.length / 2); i >= 0; i--) {
-    await this.heapify(array, array.length, i);
+    let bars = document.getElementsByClassName("array-cell");
+    for (let i = Math.floor(array.length / 2); i >= 0; i--) {
+      await this.heapify(array, array.length, i);
+    }
+    for (let i = array.length - 1; i >= 0; i--) {
+      await this.heapSwap(array, 0, i, bars);
+      await this.heapify(array, i, 0);
+    }
+    for (let k = 0; k < bars.length; k++) {
+      bars[k].style.backgroundColor = RANDOM_STATE_COLOR;
+      await this.sleep(this.speed);
+    }
+    return array;
   }
-  for (let i = array.length - 1; i >= 0; i--) {
-    await this.swap(array, 0, i, bars);
-    await this.heapify(array, i, 0);
-  }
-  for (let k = 0; k < bars.length; k++) {
-    bars[k].style.backgroundColor = "#d6d6d6";
+
+  async heapSwap(items, leftIndex, rightIndex, bars) {
+    var temp = items[leftIndex];
+    items[leftIndex] = items[rightIndex];
+    items[rightIndex] = temp;
+    bars[leftIndex].style.height = items[leftIndex] * HEIGHT_FACTOR + "px";
+    bars[leftIndex].style.backgroundColor = IN_ACTION_COLOR;
+    bars[rightIndex].style.height = items[rightIndex] * HEIGHT_FACTOR + "px";
+    bars[rightIndex].style.backgroundColor = DONE_COLOR;
     await this.sleep(this.speed);
   }
-  return array;
-}
 
-async heapify(array, n, i) {
-  let bars = document.getElementsByClassName("array-cell");
-  let largest = i;
-  let left = 2 * i + 1;
-  let right = 2 * i + 2;
-  if (left < n && array[left] > array[largest]) {
-    largest = left;
+  async heapify(array, n, i) {
+    let bars = document.getElementsByClassName("array-cell");
+    let largest = i;
+    let left = 2 * i + 1;
+    let right = 2 * i + 2;
+    if (left < n && array[left] > array[largest]) {
+      largest = left;
+    }
+    if (right < n && array[right] > array[largest]) {
+      largest = right;
+    }
+    if (largest !== i) {
+      await this.heapSwap(array, i, largest, bars);
+      await this.heapify(array, n, largest);
+    }
   }
-  if (right < n && array[right] > array[largest]) {
-    largest = right;
-  }
-  if (largest !== i) {
-    await this.swap(array, i, largest, bars);
-    await this.heapify(array, n, largest);
-  }
-}
 
   async bubbleSort(array) {
     let bars = document.getElementsByClassName("array-cell");
@@ -170,37 +217,23 @@ async heapify(array, n, i) {
         if (array[j] > array[j + 1]) {
           for (let k = 0; k < bars.length; k++) {
             if (k !== j && k !== j + 1) {
-              bars[k].style.backgroundColor = "#B1D8B7";
+              bars[k].style.backgroundColor = DONE_COLOR;
             }
           }
           let temp = array[j];
           array[j] = array[j + 1];
           array[j + 1] = temp;
-          bars[j].style.height = `${3.8 * array[j]}px`;
-          bars[j].style.backgroundColor = "#2F5233";
-          bars[j + 1].style.height = `${3.8 * array[j + 1]}px`;
-          bars[j + 1].style.backgroundColor = "#2F5233";
+          bars[j].style.height = `${HEIGHT_FACTOR * array[j]}px`;
+          bars[j].style.backgroundColor = IN_ACTION_COLOR;
+          bars[j + 1].style.height = `${HEIGHT_FACTOR * array[j + 1]}px`;
+          bars[j + 1].style.backgroundColor = IN_ACTION_COLOR;
           await this.sleep(this.speed);
         }
       }
       await this.sleep(this.speed);
     }
     for (let i = 0; i < array.length; i++) {
-      bars[i].style.backgroundColor = "#d6d6d6";
-    }
-  }
-
-  testSortingAlgorithms() {
-    for (let i = 0; i < 50; i++) {
-      const array = [];
-      const lengthOfArray = randomIntWithinInterval(1, 499);
-      for (let i = 0; i < lengthOfArray; i++) {
-        array.push(randomIntWithinInterval(-999, 999));
-      }
-
-      const javaScriptSortedArray = array.slice().sort((a, b) => a - b);
-      const mergeSortedArray = getMergeSortAnimations(array.slice());
-      console.log(checkArraysAreEqual(javaScriptSortedArray, mergeSortedArray));
+      bars[i].style.backgroundColor = RANDOM_STATE_COLOR;
     }
   }
 
@@ -233,6 +266,9 @@ async heapify(array, n, i) {
         break;
       case "Quick Sort":
         this.quickSort(this.state.array, 0, this.state.array.length - 1);
+        break;
+      case "Insertion Sort":
+        this.insertionSort(this.state.array);
         break;
       default:
         this.bubbleSort(this.state.array);
@@ -318,18 +354,6 @@ async heapify(array, n, i) {
 
 function randomIntWithinInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-function checkArraysAreEqual(arrayOne, arrayTwo) {
-  if (arrayOne.length !== arrayTwo.length) {
-    return false;
-  }
-  for (let i = 0; i < arrayOne.length; i++) {
-    if (arrayOne[i] !== arrayTwo[i]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 export default Sorting;
